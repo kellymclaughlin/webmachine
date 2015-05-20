@@ -2,6 +2,8 @@
 -export([init/1]).
 -export([allowed_methods/2,
          content_types_accepted/2,
+         post_is_create/2,
+         process_post/2,
          accept_content/2]).
 
 -include_lib("webmachine/include/webmachine.hrl").
@@ -10,11 +12,19 @@ init(_) ->
     {ok, undefined}.
 
 allowed_methods(ReqData, Context) ->
-    {['PUT'], ReqData, Context}.
+    {['PUT', 'POST'], ReqData, Context}.
 
 content_types_accepted(ReqData, Context) ->
     {MT, _Params} = webmachine_util:media_type_to_detail("application/json"),
     {[{MT, accept_content}], ReqData, Context}.
+
+post_is_create(ReqData, Context) ->
+    {false, ReqData, Context}.
+
+process_post(ReqData, Context) ->
+    Body = wrq:req_body(ReqData),
+    io:format("Received the following request body: ~p~n", [Body]),
+    {true, wrq:set_resp_body("ok", ReqData), Context}.
 
 accept_content(ReqData, Context) ->
     Body = wrq:req_body(ReqData),
